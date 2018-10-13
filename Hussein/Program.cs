@@ -29,15 +29,15 @@ namespace Sandbox
             var results = new StreamWriter(@".\nstars.txt");
             results.WriteLine("NAME    Nlines    + next lines: flag. band. value. error (comments)");
 
-            for (int i = 30; i <= rowCount; i++) 
+            for (int i = 1; i <= rowCount; i++) 
             {
                 if (stars.Cells[i, x] != null && stars.Cells[i, x].Value2 != null) //полагаeм, если не пусты х, не пусты и у
                 {
                     results.WriteLine("bhr111 m{0}  0018     notes here ======================", stars.Cells[i,1].Value2);
                     var stary = stars.Cells[i, x].Value2.ToString() + " " + stars.Cells[i, y].Value2.ToString();
-                    FillGaia(results); //даже если зведа не найдена в других каталогах, GAIA и Tycho заполнятся нулями
+                    FillGaia(i, inputWorksheet, results);
                     FindStarIn(stary, nomadWorksheet, "NOMAD", results);
-                    FillTycho(results);
+                    FillZeros("Tycho-2", results); //даже если зведа не найдена в других каталогах Tycho заполнятся нулями
                     FindStarIn(stary, ucacWorksheet, "UCAC4", results);
                     FindStarIn(stary, apassWorksheet, "APASS", results);
                     FindStarIn(stary, massWorksheet, "2MASS", results);
@@ -69,7 +69,7 @@ namespace Sandbox
         {
             Excel.Range stars = thisWorksheet.UsedRange;
             int rowCount = stars.Rows.Count;
-            
+            bool found = false;
 
             for (int i = 1; i <= rowCount; i++)
             {
@@ -78,10 +78,12 @@ namespace Sandbox
                     if ((stars.Cells[i, 2].Value2.ToString() == star))
                     {
                         WhatWeNeed(i, thisWorksheet, catalogName, results);
+                        found = true;
                         break;
                     }
                 }
             }
+            if (!found) FillZeros(catalogName, results);
         }
 
         public static void WhatWeNeed(int row, Excel._Worksheet thisWorksheet, string catalogName, StreamWriter results)
@@ -131,16 +133,46 @@ namespace Sandbox
             }
         }
 
-        public static void FillGaia(StreamWriter results)
+        public static void FillGaia(int row, Excel._Worksheet stars, StreamWriter results)
         {
-            results.WriteLine("+Pa 0.0  0.0 GAIA");
-            results.WriteLine("+G 0.0  0.0");
+            results.WriteLine("+Pa {0} {1} GAIA", stars.Cells[row, 17].Value2.ToString(), stars.Cells[row, 18].Value2.ToString());
+            results.WriteLine("+G {0} {1}", stars.Cells[row, 19].Value2.ToString(), stars.Cells[row, 20].Value2.ToString());
         }
 
-        public static void FillTycho(StreamWriter results)
+        public static void FillZeros(string catalogName, StreamWriter results)
         {
-            results.WriteLine("+BT 0.0  0.0 Tycho-2");
-            results.WriteLine("+VT 0.0  0.0");
+            switch (catalogName)
+            {
+                case "Tycho-2":
+                    results.WriteLine("+ BT 0.0  0.0 Tycho-2");
+                    results.WriteLine("+ VT 0.0  0.0");
+                    break;
+                case "NOMAD":
+                    results.WriteLine("+Rc 0.0  0.0 NOMAD");
+                    break;
+                case "2MASS":
+                    results.WriteLine("+ J2 0.0  0.0 2MASS");
+                    results.WriteLine("+ H2 0.0  0.0");
+                    results.WriteLine("+ kS 0.0  0.0");
+                    break;
+                case "UCAC4":
+                    results.WriteLine("+ B 0.0  0.0 UCAC4");
+                    results.WriteLine("+ V 0.0  0.0");
+                    results.WriteLine("+ g1 0.0  0.0");
+                    results.WriteLine("+ r1 0.0  0.0");
+                    results.WriteLine("+ i1 0.0  0.0");
+                    break;
+                case "APASS":
+                    results.WriteLine("+ B 0.0  0.0 APASS");
+                    results.WriteLine("+ V 0.0  0.0");
+                    results.WriteLine("+ g1 0.0  0.0");
+                    results.WriteLine("+ r1 0.0  0.0");
+                    results.WriteLine("+ i1 0.0  0.0");
+                    break;
+                default:
+                    break;
+                    
+            }
         }
     }
 }
