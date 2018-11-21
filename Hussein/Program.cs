@@ -15,16 +15,15 @@ namespace Sandbox
             Excel.Application xlApp = new Excel.Application();
             Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(@".\gaia_bhr111.xls"); //программа ожадает входной файл в той же папке, где исполнимый файл
             Excel._Worksheet nomadWorksheet = xlWorkbook.Sheets[5];
-            Excel._Worksheet inputWorksheet = xlWorkbook.Sheets[3];
+            Excel._Worksheet gaiaWorksheet = xlWorkbook.Sheets[3];
             Excel._Worksheet ucacWorksheet = xlWorkbook.Sheets[6];
             Excel._Worksheet apassWorksheet = xlWorkbook.Sheets[7];
             Excel._Worksheet massWorksheet = xlWorkbook.Sheets[4];
 
-            Excel.Range stars = inputWorksheet.UsedRange;
+            Excel.Range stars = gaiaWorksheet.UsedRange;
 
             int rowCount = stars.Rows.Count;
             var x = 10;
-            var y = 11;
 
             var results = new StreamWriter(@".\nstars.txt");
             results.WriteLine("NAME    Nlines    + next lines: flag. band. value. error (comments)");
@@ -34,8 +33,8 @@ namespace Sandbox
                 if (stars.Cells[i, x] != null && stars.Cells[i, x].Value2 != null) //полагаeм, если не пусты х, не пусты и у
                 {
                     results.WriteLine("bhr111 m{0}  0018     notes here ======================", stars.Cells[i,1].Value2);
-                    var stary = stars.Cells[i, x].Value2.ToString() + " " + stars.Cells[i, y].Value2.ToString();
-                    FillGaia(i, inputWorksheet, results);
+                    var stary = stars.Cells[i, x].Value2.ToString() + " " + stars.Cells[i, x+1].Value2.ToString();
+                    FillGaia(i, gaiaWorksheet, results);
                     FindStarIn(stary, nomadWorksheet, "NOMAD", results);
                     FillZeros("Tycho-2", results); //даже если зведа не найдена в других каталогах Tycho заполнятся нулями
                     FindStarIn(stary, ucacWorksheet, "UCAC4", results);
@@ -49,7 +48,7 @@ namespace Sandbox
 
             //Com объекты должны быть освобождены именно так. Не использовать двух точек, не передавать список!
             Marshal.ReleaseComObject(stars);
-            Marshal.ReleaseComObject(inputWorksheet);
+            Marshal.ReleaseComObject(gaiaWorksheet);
             Marshal.ReleaseComObject(nomadWorksheet);
             Marshal.ReleaseComObject(ucacWorksheet);
             Marshal.ReleaseComObject(apassWorksheet);
@@ -99,6 +98,9 @@ namespace Sandbox
                     break;
                 case "2MASS":
                     columns = new string[] { "+ J2 ", "+ H2 ", "+ Ks "};
+                    break;
+                case "APASS":
+                    columns = new string[] { "+ V ", "+ B ", "+ g1 ", "+ r1 ", "+ i1 " };
                     break;
                 default:
                     columns = new string[] { "+ B ", "+ V ", "+ g1 ", "+ r1 ", "+ i1 " };
@@ -163,8 +165,8 @@ namespace Sandbox
                     results.WriteLine("+ i1 0.0  0.0");
                     break;
                 case "APASS":
-                    results.WriteLine("+ B 0.0  0.0 APASS");
-                    results.WriteLine("+ V 0.0  0.0");
+                    results.WriteLine("+ V 0.0  0.0 APASS");
+                    results.WriteLine("+ B 0.0  0.0");
                     results.WriteLine("+ g1 0.0  0.0");
                     results.WriteLine("+ r1 0.0  0.0");
                     results.WriteLine("+ i1 0.0  0.0");
